@@ -1,0 +1,21 @@
+# k8s/demo3-ingress/backend-config.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# BackendConfig — configura cómo el Load Balancer de GCP
+# hace health checks hacia los Services.
+#
+# Sin esto, GKE usa "/" como health check para todos los backends,
+# lo que puede fallar si el servicio no responde 200 en "/".
+# Con esto, apuntamos al endpoint /health de cada servicio.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: clase-backend-config
+spec:
+  healthCheck:
+    checkIntervalSec: 15
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 2
+    type: HTTP
+    requestPath: /health

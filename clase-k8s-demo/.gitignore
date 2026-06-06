@@ -1,0 +1,17 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+terraform/*.tfplan
+
+# Credenciales — NUNCA commitear
+*.json
+*sa-key*
+*service-account*
+*credentials*
+
+# Misc
+.DS_Store
+*.log

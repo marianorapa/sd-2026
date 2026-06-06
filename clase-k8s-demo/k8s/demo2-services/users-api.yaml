@@ -1,0 +1,72 @@
+# k8s/demo2-services/users-api.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 2: Users API
+#
+# Puntos a destacar:
+#   - replicas: 3 → tres Pods del mismo servicio
+#   - POD_NAME viene de fieldRef → cada Pod sabe su propio nombre
+#   - El Service agrupa los Pods por label app=users-api
+#   - ClusterIP → sólo accesible dentro del cluster (aún no es público)
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api
+  labels:
+    app: users-api
+spec:
+  replicas: 3        # ← tres instancias para mostrar balanceo en Demo 3
+  selector:
+    matchLabels:
+      app: users-api
+  template:
+    metadata:
+      labels:
+        app: users-api
+    spec:
+      containers:
+        - name: users-api
+          image: us-central1-docker.pkg.dev/handy-droplet-498116-c3/clase-demos/users-api:latest   # reemplazado por el script
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name       # ← K8s inyecta el nombre del Pod
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-api-service
+  labels:
+    app: users-api
+  annotations:
+    cloud.google.com/backend-config: '{"default": "clase-backend-config"}'
+spec:
+  type: NodePort        # ← requerido por GKE Ingress (el LB rutea directo al nodo)
+  selector:
+    app: users-api      # ← agrupa todos los Pods con este label
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

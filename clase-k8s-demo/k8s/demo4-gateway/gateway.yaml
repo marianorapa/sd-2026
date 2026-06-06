@@ -1,0 +1,54 @@
+# k8s/demo4-gateway/gateway.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 4: Gateway API — evolución del Ingress
+#
+# Diferencias clave con el Ingress (Demo 3):
+#
+#   Ingress (L7 — HTTP):
+#     • Una IP, routing por PATH  (/api/users, /api/products)
+#     • El LB "entiende" HTTP, puede leer la URL
+#
+#   Gateway + TCPRoute (L4 — TCP):
+#     • Una IP, routing por PUERTO (:8081, :8082)
+#     • El LB opera a nivel TCP — no ve paths ni headers
+#     • Cada servicio tiene su propio puerto en el Gateway
+#
+# Por qué Gateway API es el sucesor del Ingress:
+#   • Más expresivo: separa roles (infra vs. app)
+#   • Soporta L4 (TCP/UDP) y L7 (HTTP) con la misma API
+#   • Extensible sin anotaciones propietarias
+#
+# GatewayClass "gke-l4-regional-external-managed":
+#   → GKE crea un Network Load Balancer regional (L4)
+#   → A diferencia del HTTP LB del Ingress (L7), este opera a nivel TCP
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: clase-gateway
+spec:
+  gatewayClassName: gke-l4-regional-external-managed   # ← GKE Network LB (L4)
+  listeners:
+    # ── Puerto 80: Frontend ──────────────────────────────────────────────────
+    - name: frontend
+      port: 80
+      protocol: TCP
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+    # ── Puerto 8081: Users API ───────────────────────────────────────────────
+    - name: users-api
+      port: 8081
+      protocol: TCP
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+    # ── Puerto 8082: Products API ────────────────────────────────────────────
+    - name: products-api
+      port: 8082
+      protocol: TCP
+      allowedRoutes:
+        namespaces:
+          from: Same

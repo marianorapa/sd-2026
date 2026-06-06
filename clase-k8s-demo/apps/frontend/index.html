@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo K8s — Sistemas Distribuidos</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1e3a5f;
+      color: white;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header h1 { font-size: 1.4rem; }
+    header p  { font-size: 0.85rem; opacity: 0.7; margin-top: 0.2rem; }
+
+    .badge {
+      background: #3182ce;
+      color: white;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header h2 { font-size: 1rem; font-weight: 600; }
+
+    .served-by {
+      font-size: 0.75rem;
+      background: #ebf8ff;
+      color: #2b6cb0;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-family: monospace;
+    }
+
+    .served-by.green { background: #f0fff4; color: #276749; }
+
+    .card-body { padding: 0 1.5rem 1.5rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; font-size: 0.75rem; color: #718096;
+         text-transform: uppercase; letter-spacing: 0.05em;
+         padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 0.6rem 0; border-bottom: 1px solid #f7fafc; }
+    tr:last-child td { border-bottom: none; }
+
+    .loading { color: #a0aec0; font-size: 0.9rem; padding: 1rem 0; }
+    .error   { color: #e53e3e; font-size: 0.85rem; padding: 1rem 0; }
+
+    .reload-btn {
+      display: block;
+      width: 100%;
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background: #ebf4ff;
+      color: #3182ce;
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .reload-btn:hover { background: #bee3f8; }
+
+    .info-bar {
+      grid-column: 1 / -1;
+      background: #1a202c;
+      color: #a0aec0;
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .info-bar span { color: #68d391; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🚀 Demo K8s — Ingress y Load Balancers</h1>
+    <p>Sistemas Distribuidos — UNLu</p>
+  </div>
+  <span class="badge">En vivo</span>
+</header>
+
+<main>
+
+  <!-- Info bar -->
+  <div class="info-bar">
+    <div>GET /api/users → <span id="users-pod">…</span></div>
+    <div>GET /api/products → <span id="products-pod">…</span></div>
+    <div>Recargá varias veces para ver el balanceo entre réplicas ↺</div>
+  </div>
+
+  <!-- Users card -->
+  <div class="card">
+    <div class="card-header" style="background:#ebf8ff; border-bottom:1px solid #bee3f8;">
+      <h2>👥 Usuarios</h2>
+      <span class="served-by" id="users-served-by">cargando…</span>
+    </div>
+    <div class="card-body">
+      <div id="users-content" class="loading">Consultando /api/users…</div>
+      <button class="reload-btn" onclick="fetchUsers()">↺ Recargar</button>
+    </div>
+  </div>
+
+  <!-- Products card -->
+  <div class="card">
+    <div class="card-header" style="background:#f0fff4; border-bottom:1px solid #c6f6d5;">
+      <h2>📦 Productos</h2>
+      <span class="served-by green" id="products-served-by">cargando…</span>
+    </div>
+    <div class="card-body">
+      <div id="products-content" class="loading">Consultando /api/products…</div>
+      <button class="reload-btn" onclick="fetchProducts()" style="background:#f0fff4;color:#276749;border-color:#c6f6d5;">↺ Recargar</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  async function fetchUsers() {
+    const content = document.getElementById("users-content");
+    const podLabel = document.getElementById("users-served-by");
+    const podInfo  = document.getElementById("users-pod");
+    content.innerHTML = '<p class="loading">Cargando…</p>';
+    try {
+      const res = await fetch("/api/users");
+      const json = await res.json();
+      podLabel.textContent = json.served_by;
+      podInfo.textContent  = json.served_by;
+      content.innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th></tr></thead>
+          <tbody>
+            ${json.data.map(u => `
+              <tr>
+                <td>${u.id}</td>
+                <td>${u.name}</td>
+                <td>${u.email}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+    } catch (e) {
+      content.innerHTML = `<p class="error">❌ Error: ${e.message}</p>`;
+      podLabel.textContent = "error";
+    }
+  }
+
+  async function fetchProducts() {
+    const content = document.getElementById("products-content");
+    const podLabel = document.getElementById("products-served-by");
+    const podInfo  = document.getElementById("products-pod");
+    content.innerHTML = '<p class="loading">Cargando…</p>';
+    try {
+      const res = await fetch("/api/products");
+      const json = await res.json();
+      podLabel.textContent = json.served_by;
+      podInfo.textContent  = json.served_by;
+      content.innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th></tr></thead>
+          <tbody>
+            ${json.data.map(p => `
+              <tr>
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td>$${p.price}</td>
+                <td>${p.stock}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+    } catch (e) {
+      content.innerHTML = `<p class="error">❌ Error: ${e.message}</p>`;
+      podLabel.textContent = "error";
+    }
+  }
+
+  fetchUsers();
+  fetchProducts();
+</script>
+</body>
+</html>
