@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: fibonacci-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fibonacci-api
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50   # Escala cuando CPU promedio > 50% del request (>100m)
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120  # Espera 2 min antes de reducir réplicas
