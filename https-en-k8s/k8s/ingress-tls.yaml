@@ -10,10 +10,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - 35.224.54.144.nip.io   # reemplazar con tu IP.nip.io (ver: terraform output ingress_domain)
+        - 35.224.54.144.sslip.io   # reemplazar con tu IP.sslip.io (ver: terraform output ingress_domain)
       secretName: mi-app-tls
   rules:
-    - host: 35.224.54.144.nip.io   # mismo valor que en tls.hosts
+    - host: 35.224.54.144.sslip.io   # mismo valor que en tls.hosts
       http:
         paths:
           # Paths más específicos van primero
