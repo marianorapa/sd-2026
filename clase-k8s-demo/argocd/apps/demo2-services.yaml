@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo2-services
+  namespace: argocd
+  # El finalizer garantiza que ArgoCD borre los recursos del cluster
+  # cuando se elimina esta Application
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/marianorapa/sd-2026
+    targetRevision: HEAD
+    path: clase-k8s-demo/k8s/demo2-services
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true      # borra recursos que ya no están en Git
+      selfHeal: true   # revierte cambios manuales en el cluster
+    syncOptions:
+      - CreateNamespace=true

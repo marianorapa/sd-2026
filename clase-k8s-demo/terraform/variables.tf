@@ -20,3 +20,9 @@ variable "cluster_name" {
   type        = string
   default     = "clase-k8s"
 }
+
+variable "static_ip_name" {
+  description = "Nombre de la IP estática de GCP para el Ingress controller"
+  type        = string
+  default     = "ingress-ip"
+}

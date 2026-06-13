@@ -28,3 +28,23 @@ output "kubeconfig_command" {
   description = "Comando para obtener las credenciales del cluster"
   value       = "gcloud container clusters get-credentials ${var.cluster_name} --zone ${var.zone} --project ${var.project_id}"
 }
+
+output "argocd_password_command" {
+  description = "Comando para obtener la contraseña inicial del admin de ArgoCD"
+  value       = "kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
+}
+
+output "argocd_ui_command" {
+  description = "Comando para obtener la IP externa de la UI de ArgoCD"
+  value       = "kubectl -n argocd get svc argocd-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
+}
+
+output "static_ip" {
+  description = "IP estática del LoadBalancer de nginx-ingress"
+  value       = google_compute_address.ingress_ip.address
+}
+
+output "ingress_domain" {
+  description = "Dominio sslip.io listo para usar en el Ingress"
+  value       = "${google_compute_address.ingress_ip.address}.sslip.io"
+}

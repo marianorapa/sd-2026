@@ -1,0 +1,25 @@
+# REFERENCIA — no se registra en Terraform ni se aplica automáticamente.
+# El routing HTTP pasó a ser gestionado por https-stack (nginx-ingress + TLS).
+# Este archivo queda como material didáctico del GCE Ingress nativo de GKE.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo3-ingress
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/marianorapa/sd-2026
+    targetRevision: HEAD
+    path: clase-k8s-demo/k8s/demo3-ingress
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

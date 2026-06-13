@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mi-app-ingress
+  namespace: default   # cambiá si tus apps están en otro namespace
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    # Si tu backend NO maneja el prefijo de path (ej: escucha en /health en vez de /api/v1/health),
+    # necesitás configurar rewrite-target. Ver: https://kubernetes.github.io/ingress-nginx/examples/rewrite/
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: TU_DOMINIO   # reemplazar con tu IP.sslip.io (ej: 34.72.155.10.sslip.io)
+      http:
+        paths:
+          # Paths más específicos van primero
+          - path: /api/v2
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-api-2    # reemplazar con el nombre de tu Service
+                port:
+                  number: 8080         # reemplazar con el puerto de tu Service
+          - path: /api/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-api-1    # reemplazar con el nombre de tu Service
+                port:
+                  number: 8080         # reemplazar con el puerto de tu Service
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service  # reemplazar con el nombre de tu Service de frontend
+                port:
+                  number: 80            # reemplazar con el puerto de tu Service

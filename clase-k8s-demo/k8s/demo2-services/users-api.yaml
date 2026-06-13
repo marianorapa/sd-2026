@@ -15,7 +15,7 @@ metadata:
   labels:
     app: users-api
 spec:
-  replicas: 3        # ← tres instancias para mostrar balanceo en Demo 3
+  replicas: 1        # ← tres instancias para mostrar balanceo en Demo 3
   selector:
     matchLabels:
       app: users-api

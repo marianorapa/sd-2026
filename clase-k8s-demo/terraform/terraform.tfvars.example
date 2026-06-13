@@ -1,7 +1,8 @@
 # Copiar este archivo como terraform.tfvars y completar los valores.
 # terraform.tfvars está en .gitignore — NO commitear con valores reales.
 
-project_id   = "COMPLETAR-proyecto-id"
-region       = "us-central1"
-zone         = "us-central1-a"
-cluster_name = "clase-k8s"
+project_id     = "COMPLETAR-proyecto-id"
+region         = "us-central1"
+zone           = "us-central1-a"
+cluster_name   = "clase-k8s"
+static_ip_name = "ingress-ip"

@@ -1,0 +1,10 @@
+controller:
+  service:
+    type: LoadBalancer
+    loadBalancerIP: "REEMPLAZAR_CON_TU_IP"
+    annotations:
+      # Fuerza un LB externo en GKE (requerido en algunos clusters con configuración de red privada)
+      networking.gke.io/load-balancer-type: "External"
+  # Necesario para que nginx-ingress publique la IP correcta en el status del Ingress
+  publishService:
+    enabled: true
